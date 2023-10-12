@@ -7,7 +7,15 @@ class DatabaseHandler {
     db.collection('projects')
     .doc(gameId.toString())
     .set({
+      'gameId': gameId,
       'users': [userId]
     });
+  }
+
+  Future<QuerySnapshot<Map>> getUserProjects(int userId) async {
+    return 
+      db.collection('projects')
+      .where('users', arrayContains: userId)
+      .get();
   }
 }

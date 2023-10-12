@@ -1,3 +1,5 @@
+import 'package:cwflutter/classes/DatabaseHandler.dart';
+import 'package:cwflutter/classes/GameParser.dart';
 import 'package:cwflutter/pages/authWebViewPage.dart';
 import 'package:cwflutter/pages/newProjectPage.dart';
 import 'package:flutter/material.dart';
@@ -21,13 +23,6 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {   
-    void _initProjectSetup() {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => NewProjectPage(userId: widget.userId)
-        )
-      );
-    }
     List<Widget> _widgetOptions = <Widget>[
         Padding(
           padding: const EdgeInsets.all(16.0),
@@ -79,23 +74,18 @@ class _DashboardPageState extends State<DashboardPage> {
 
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: GridView.count(
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            crossAxisCount: 1,
-            childAspectRatio: 1.5,
-            children: [
-              ElevatedButton(
-                onPressed: _initProjectSetup, 
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add_outlined, size: 100,),
-                    Text("Setup New Project", style: TextStyle(fontSize: 24),)
-                  ],
-                )
-              )
-            ],
+          child: FutureBuilder(
+            future: DatabaseHandler().getUserProjects(widget.userId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else {
+                final relevantData = snapshot.data!.docs.map((e) => e.data()).toList();
+                return ProjectsGrid(userId: widget.userId, projects: relevantData);
+              }
+            }
           ),
         )
     ];
@@ -123,6 +113,90 @@ class _DashboardPageState extends State<DashboardPage> {
             ),         
         ]
       ),
+    );
+  }
+}
+
+class ProjectsGrid extends StatefulWidget {
+  final int userId;
+  final List projects;
+
+  const ProjectsGrid({
+    super.key,
+    required this.userId,
+    required this.projects
+  });
+
+  @override
+  State<ProjectsGrid> createState() => _ProjectsGridState();
+}
+
+class _ProjectsGridState extends State<ProjectsGrid> {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: widget.projects.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => NewProjectPage(userId: widget.userId)
+                )
+              );
+            }, 
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_outlined, size: 100,),
+                Text("Setup New Project", style: TextStyle(fontSize: 24),)
+              ],
+            )
+          );
+        }
+
+        print(widget.projects);
+        print(index);
+        final gameId = widget.projects[index - 1]['gameId'];
+        final mediaFuture = GameParser().fetchGameMedia(gameId);
+
+        return Card(
+          child: FutureBuilder(
+            future: mediaFuture, 
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError || snapshot.data?.status == ResultStatus.failure) {
+                return const Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error, color: Colors.red, size: 64,),
+                        SizedBox(height: 10,),
+                      ],
+                    ),
+                  )
+                );
+              } else {
+                String url = snapshot.data!.data['data'][0]['imageUrl'];
+                return Column(
+                  children: [
+                    //Text(game['name'], textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),),
+                    SizedBox(height: 10,),
+                    Image.network(
+                      url,
+                      fit: BoxFit.fitWidth,
+                    ),
+                  ],
+                );
+              }                          
+            }
+          ),
+        );
+      },
     );
   }
 }

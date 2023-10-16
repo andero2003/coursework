@@ -1,7 +1,12 @@
+import 'package:cwflutter/classes/User.dart';
+import 'package:cwflutter/pages/dashboard.dart';
 import 'package:cwflutter/pages/loginPage.dart';
+import 'package:cwflutter/services/AuthService.dart';
+import 'package:cwflutter/services/DatabaseService.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -12,28 +17,45 @@ Future<void> main() async {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
 
+class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
+  AuthService authService = AuthService();
+  DatabaseService databaseService = DatabaseService();
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'App',
-      themeMode: ThemeMode.light,
-      theme: ThemeData(
-        primarySwatch: Colors.indigo,
-        textTheme: GoogleFonts.montserratTextTheme()
-      ),
-      darkTheme: ThemeData.dark().copyWith(
-        textTheme: Typography().white.apply(fontFamily: GoogleFonts.montserrat().fontFamily)
-      ),
-      home: Builder(
-        builder: (context) {
-          return LoginPage();  //DashboardPage(username: 'DevAndero', avatarUrl: 'https://tr.rbxcdn.com/15DAY-AvatarHeadshot-CE7D8D582277E5C8F658DD07D85AF642-Png/150/150/AvatarHeadshot/Png/noFilter');
-        }
-      )
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => authService),
+        ChangeNotifierProvider(create: (_) => databaseService)
+      ],
+      child: MaterialApp(
+          title: 'App',
+          themeMode: ThemeMode.light,
+          theme: ThemeData(
+            primarySwatch: Colors.indigo,
+            textTheme: GoogleFonts.montserratTextTheme()
+          ),
+          darkTheme: ThemeData.dark().copyWith(
+            textTheme: Typography().white.apply(fontFamily: GoogleFonts.montserrat().fontFamily)
+          ),
+          home: Consumer<AuthService>(
+            builder: (context, authService, _) {
+              if (authService.loggedUser != null) {
+                return DashboardPage(user: authService.loggedUser!);
+              } else {
+                return LoginPage(authService: authService,);
+              }              
+            }
+          )
+        )
     );
   }
 }

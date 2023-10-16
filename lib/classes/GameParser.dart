@@ -48,11 +48,55 @@ class GameParser {
       return FetchResult(ResultStatus.failure, 'Failed to load games: ${response.statusCode}');
     }   
   }
-    
+
+  Future<FetchResult> searchUsers(String keyword) async {
+    final url = Uri.parse('https://users.roblox.com/v1/users/search?keyword=$keyword&limit=10');
+    final response = await http.get(url);
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return FetchResult(ResultStatus.success, data);
+    } else {
+      return FetchResult(ResultStatus.failure, 'Failed to load users: ${response.statusCode}');
+    }
+  }
+
+  Future<FetchResult> getUserInfo(int userId) async {
+    final url = Uri.parse('https://users.roblox.com/v1/users/$userId');
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return FetchResult(ResultStatus.success, data);
+    } else {
+      return FetchResult(ResultStatus.failure, 'Failed to load user info: ${response.statusCode}');
+    }
+  }
+
+  Future<FetchResult> getUserIcons(List<int> userIds) async {
+    final url = Uri.parse('https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userIds.join(',')}&size=48x48&format=Png&isCircular=false');
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return FetchResult(ResultStatus.success, data);
+    } else {
+      return FetchResult(ResultStatus.failure, 'Failed to load user info: ${response.statusCode}');
+    }
+  }
+
   Future<FetchResult> fetchGameMedia(int universeId) async {
     final url = Uri.parse('https://thumbnails.roblox.com/v1/games/icons?universeIds=$universeId&returnPolicy=PlaceHolder&size=256x256&format=Png&isCircular=false');
     final response = await http.get(url);
-    print(response.body);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return FetchResult(ResultStatus.success, data);
+    } else {
+      return FetchResult(ResultStatus.failure, 'Failed to load media: ${response.statusCode}');
+    }
+  }
+
+  Future<FetchResult> fetchGameInfo(int universeId) async {
+    final url = Uri.parse('https://games.roblox.com/v1/games?universeIds=$universeId');
+    final response = await http.get(url);
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return FetchResult(ResultStatus.success, data);

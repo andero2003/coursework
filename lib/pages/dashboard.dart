@@ -1,129 +1,123 @@
-import 'package:cwflutter/classes/DatabaseHandler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cwflutter/pages/projectCustomisationPage.dart';
+import 'package:cwflutter/services/DatabaseService.dart';
+import 'package:cwflutter/classes/GameData.dart';
 import 'package:cwflutter/classes/GameParser.dart';
-import 'package:cwflutter/pages/authWebViewPage.dart';
+import 'package:cwflutter/classes/User.dart';
 import 'package:cwflutter/pages/newProjectPage.dart';
+import 'package:cwflutter/services/AuthService.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:convert';
 
 class DashboardPage extends StatefulWidget {
-  final String username;
-  final String avatarUrl;
-  final int userId;
+  final User user;
 
-  DashboardPage({required this.username, required this.avatarUrl, required this.userId});
+  DashboardPage({required this.user});
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  int _selectedIndex = 0;
-
   @override
   Widget build(BuildContext context) {   
-    List<Widget> _widgetOptions = <Widget>[
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  CircleAvatar(
-                    backgroundImage: NetworkImage(widget.avatarUrl),
-                    backgroundColor: Colors.grey.shade300,
-                    radius: 40,
-                  ),
-                  SizedBox(width: 15),
-                  Text(
-                    'Welcome, ${widget.username}!',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              Divider(
-                thickness: 1.5,
-              ),
-              /*
-              Text("Current Project", style:TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-              SizedBox(height: 10),
-              Row(
-                children: <Widget>[
-                  Image(
-                    height: 56,
-                    image: NetworkImage('https://tr.rbxcdn.com/d74dabd69b700545ad692135943d3794/150/150/Image/Png'),
-                  ),
-                  SizedBox(width: 15),
-                  Text(
-                    'Balloon Simulator',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                ],
-              ),
-              SizedBox(height: 5),
-
-              Divider(
-                thickness: 1.5,
-              ),
-              */
-            ],
-          ),
-        ),
-
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: FutureBuilder(
-            future: DatabaseHandler().getUserProjects(widget.userId),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else {
-                final relevantData = snapshot.data!.docs.map((e) => e.data()).toList();
-                return ProjectsGrid(userId: widget.userId, projects: relevantData);
-              }
-            }
-          ),
-        )
-    ];
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Dashboard'),
+        actions: [IconButton(
+          icon: Icon(Icons.logout), onPressed: () {
+            final authService = Provider.of<AuthService>(context, listen: false);
+            authService.logout();
+          },
+        )],
       ),
-      body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: (value) {
-          setState(() {
-            _selectedIndex = value;
-          });
-        }, 
-        currentIndex: _selectedIndex,
-        items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard),
-              label: 'Dashboard',
+      body: Stack(
+        children: [
+          Center(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16,16,16,4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          CircleAvatar(
+                            backgroundImage: NetworkImage(widget.user.avatarUrl),
+                            backgroundColor: Colors.grey.shade300,
+                            radius: 40,
+                          ),
+                          SizedBox(width: 15),
+                          Text(
+                            'Welcome, ${widget.user.username}!',
+                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      Divider(
+                        thickness: 1.5,
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                      stream: DatabaseService().getUserProjects(widget.user.id),
+                      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (!snapshot.hasData) {
+                          return Text('No projects found');
+                        } else {
+                          final relevantData = snapshot.data!.docs.map((e) => e.data()).toList();
+                          return ProjectsGrid(projects: relevantData);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+            ])
+          ),
+          Positioned(
+            right: 10,
+            bottom: 10,
+            child: FloatingActionButton(
+              elevation: 10,
+              tooltip: 'New Project',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => NewProjectPage(userId: widget.user.id)
+                  )
+                );
+              }, 
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_outlined, size: 24,),
+                ],
+              )
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.list),
-              label: 'Projects',
-            ),         
-        ]
+          ),
+        ],
       ),
     );
   }
 }
 
 class ProjectsGrid extends StatefulWidget {
-  final int userId;
   final List projects;
 
   const ProjectsGrid({
     super.key,
-    required this.userId,
     required this.projects
   });
 
@@ -135,68 +129,131 @@ class _ProjectsGridState extends State<ProjectsGrid> {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: widget.projects.length + 1,
+      itemCount: widget.projects.length,
       itemBuilder: (context, index) {
-        if (index == 0) {
-          return ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => NewProjectPage(userId: widget.userId)
-                )
-              );
-            }, 
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.add_outlined, size: 100,),
-                Text("Setup New Project", style: TextStyle(fontSize: 24),)
-              ],
-            )
-          );
-        }
-
-        print(widget.projects);
-        print(index);
-        final gameId = widget.projects[index - 1]['gameId'];
+        final gameId = widget.projects[index]['gameId'];
         final mediaFuture = GameParser().fetchGameMedia(gameId);
 
-        return Card(
-          child: FutureBuilder(
-            future: mediaFuture, 
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError || snapshot.data?.status == ResultStatus.failure) {
-                return const Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error, color: Colors.red, size: 64,),
-                        SizedBox(height: 10,),
-                      ],
-                    ),
-                  )
-                );
-              } else {
-                String url = snapshot.data!.data['data'][0]['imageUrl'];
-                return Column(
-                  children: [
-                    //Text(game['name'], textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),),
-                    SizedBox(height: 10,),
-                    Image.network(
-                      url,
-                      fit: BoxFit.fitWidth,
-                    ),
-                  ],
-                );
-              }                          
-            }
-          ),
+        final GameData gameData = GameData(id: gameId);
+
+        return GameCardButton(
+          gameData: gameData, 
+          mediaFuture: mediaFuture,
+          onPressed: () {
+            Navigator.push(
+              context, 
+              MaterialPageRoute(
+                builder: (context) => ProjectCustomisationPage(gameData: gameData),
+              )
+            );
+          },
         );
       },
+    );
+  }
+}
+
+class GameCardButton extends StatelessWidget {
+  final GameData gameData;
+  final Future<FetchResult> mediaFuture;
+  final Function() onPressed;
+
+  const GameCardButton({
+    super.key,
+    required this.gameData,
+    required this.mediaFuture,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: MaterialButton(
+        padding: EdgeInsets.zero,
+        onPressed: onPressed,
+        color: Colors.grey.shade300,
+        child: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(5),
+                child: FutureBuilder(
+                  future: mediaFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      String url = snapshot.data!.data['data'][0]['imageUrl'];
+                      return Image.network(
+                        url,
+                        fit: BoxFit.fitHeight,
+                        height: 128,
+                      );
+                    } else {
+                      return Container(
+                        color: Colors.grey.shade400,
+                        height: 128,
+                        width: 128,
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                  }
+                ),
+              ),
+            ),
+            Flexible(
+              child: FutureBuilder(
+                future: GameParser().fetchGameInfo(gameData.id),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [                
+                        Text(
+                          snapshot.data!.data['data'][0]['name'] ?? 'N/A',
+                          textAlign: TextAlign.left,
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 5,),
+                        Text(
+                          snapshot.data!.data['data'][0]['description'] ?? 'N/A',
+                          textAlign: TextAlign.left,
+                          style: TextStyle(fontSize: 18),
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      ],
+                    );
+                  } else {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [                
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            color: Colors.grey.shade400,
+                            width: 128,
+                            height: 18,
+                          ),
+                        ),
+                        SizedBox(height: 10,),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            color: Colors.grey.shade400,
+                            width: 200,
+                            height: 18,
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                }
+              ),
+            )
+          ],
+        )
+      ),
     );
   }
 }

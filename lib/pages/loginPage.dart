@@ -1,12 +1,13 @@
-import 'package:cwflutter/classes/TokenValidator.dart';
-import 'package:cwflutter/pages/authWebViewPage.dart';
 import 'package:cwflutter/pages/dashboard.dart';
+import 'package:cwflutter/services/AuthService.dart';
+import 'package:cwflutter/services/RobloxOAuthService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:provider/provider.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 final clientId = '5605260986374250325';
 final clientSecret = 'RBX-JaM0u4x_A0WMZledf3dOot1x81S8iP9BYZX3EkTM3NmYjfHflAa6XDhMQf8HMSE9';
@@ -15,6 +16,8 @@ final scope = 'openid+profile';
 final responseType = 'code';
 
 class LoginPage extends StatefulWidget {
+  late AuthService authService;
+  LoginPage({required this.authService});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -23,61 +26,16 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
     bool _isLoading = false;
 
-    final url = Uri.parse(
-      'https://apis.roblox.com/oauth/v1/authorize'
-      '?client_id=$clientId'
-      '&redirect_uri=$redirectUri'
-      '&scope=$scope'
-      '&response_type=$responseType',
-    );
-
-    void _proceedWithToken(String accessToken) async {
-        TokenValidator().write('accessToken', accessToken);
-      
-        final userInfoResponse = await http.get(
-          Uri.parse('https://apis.roblox.com/oauth/v1/userinfo'),
-          headers: {
-            'Authorization': 'Bearer $accessToken',
-          },
-        );
-        final Map<String, dynamic> userData = json.decode(userInfoResponse.body);
-        final username = userData['preferred_username'];
-        final avatarUrl = userData['picture'];
-        final userId = int.parse(userData['sub']);
-
-        setState(() {
-          _isLoading = false;
-        });
-        Navigator.push(
-          context, 
-          MaterialPageRoute(builder: (context) => DashboardPage(username: username, avatarUrl: avatarUrl, userId: userId,))
-        );
-    }
-
     void _handleLogin(context) async {
       setState(() {
         _isLoading = true;  // show loading
       });
 
-      String? validToken = await TokenValidator().validateToken();
-      if (validToken != null) {
-        _proceedWithToken(validToken);
-        return null;
-      }
+      await RobloxAuth().authenticate(widget.authService);
 
-      String? accessToken = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => AuthWebView(
-            url: url,
-            redirectUri: 'fluttertest://return',
-          ),
-        ),
-      );
-
-      if (accessToken != null) {
-        _proceedWithToken(accessToken);
-      }
+      setState(() {
+        _isLoading = false;  // show loading
+      });
     }
 
   @override

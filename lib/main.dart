@@ -1,8 +1,8 @@
-import 'package:cwflutter/classes/User.dart';
-import 'package:cwflutter/pages/dashboard.dart';
-import 'package:cwflutter/pages/loginPage.dart';
-import 'package:cwflutter/services/AuthService.dart';
-import 'package:cwflutter/services/DatabaseService.dart';
+import 'package:cwflutter/src/services/AuthService.dart';
+import 'package:cwflutter/src/services/FirestoreService.dart';
+import 'package:cwflutter/src/services/ProjectService.dart';
+import 'package:cwflutter/src/views/dashboard.dart';
+import 'package:cwflutter/src/views/loginPage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -14,7 +14,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
@@ -26,15 +26,26 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
-  AuthService authService = AuthService();
-  DatabaseService databaseService = DatabaseService();
+  late AuthService authService;
+  late FirestoreService firestoreService;
+  late ProjectService projectService;
+
+  @override
+  void initState() {
+    authService = AuthService();
+    firestoreService = FirestoreService();
+    projectService = ProjectService(authService, firestoreService);
+    
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => authService),
-        ChangeNotifierProvider(create: (_) => databaseService)
+        ChangeNotifierProvider(create: (_) => firestoreService),
+        ChangeNotifierProvider(create: (_) => projectService)
       ],
       child: MaterialApp(
           title: 'App',
@@ -51,7 +62,7 @@ class _MyAppState extends State<MyApp> {
               if (authService.loggedUser != null) {
                 return DashboardPage(user: authService.loggedUser!);
               } else {
-                return LoginPage(authService: authService,);
+                return const LoginPage();
               }              
             }
           )

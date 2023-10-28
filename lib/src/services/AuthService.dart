@@ -1,15 +1,20 @@
 import 'dart:async';
-import 'package:cwflutter/classes/User.dart';
-import 'package:cwflutter/pages/loginPage.dart';
+import 'package:cwflutter/src/models/User.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+const clientId = '5605260986374250325';
+const clientSecret = 'RBX-JaM0u4x_A0WMZledf3dOot1x81S8iP9BYZX3EkTM3NmYjfHflAa6XDhMQf8HMSE9';
+const redirectUri = 'fluttertest://redirect';
+const scope = 'openid+profile';
+const responseType = 'code';
+
 class AuthService extends ChangeNotifier {
-  final _secureStorage = FlutterSecureStorage();
-  final appAuth = FlutterAppAuth();
+  final _secureStorage = const FlutterSecureStorage();
+  final _appAuth = const FlutterAppAuth();
 
   User? _loggedUser;
 
@@ -17,13 +22,12 @@ class AuthService extends ChangeNotifier {
 
   set loggedUser(User? value) {
     _loggedUser = value;
-    print('call notifiy');
     notifyListeners();
   }
 
   Future<void> login(String accessToken, String? refreshToken) async {
     await _secureStorage.write(key: 'access_token', value: accessToken);
-    String expiryTime = DateTime.now().add(Duration(minutes: 15)).toString();
+    String expiryTime = DateTime.now().add(const Duration(minutes: 15)).toString();
     await _secureStorage.write(key: 'access_token_expiry', value: expiryTime);
     if (refreshToken != null) {
       await _secureStorage.write(key: 'refresh_token', value: refreshToken);
@@ -93,6 +97,33 @@ class AuthService extends ChangeNotifier {
     final username = userData['preferred_username'];
     final avatarUrl = userData['picture'];
     final userId = int.parse(userData['sub']);
-    return User(id: userId, username: username, avatarUrl: avatarUrl);
+    return User(
+      user_id: userId, 
+      username: username, 
+      avatar_image: avatarUrl
+    );
+  }
+
+  Future<void> oauthAuthenticate() async {
+    //String? existingAccessToken = await authService.getAccessToken();
+    //print(existingAccessToken);
+    //if (existingAccessToken != null) {
+    //  authService.login(existingAccessToken, null);
+    //  return null;
+    //}
+
+    try {
+      final AuthorizationTokenResponse? result = await _appAuth.authorizeAndExchangeCode(
+        AuthorizationTokenRequest(
+          clientId,
+          redirectUri,
+          discoveryUrl: 'https://apis.roblox.com/oauth/.well-known/openid-configuration',
+          scopes: ['openid', 'profile']
+        ),
+      );
+      login(result!.accessToken!, result.refreshToken!);
+    } catch(e) {
+      //error handle
+    };
   }
 }

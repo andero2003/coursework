@@ -1,6 +1,4 @@
-import 'package:cwflutter/pages/dashboard.dart';
-import 'package:cwflutter/services/AuthService.dart';
-import 'package:cwflutter/services/RobloxOAuthService.dart';
+import 'package:cwflutter/src/services/AuthService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
@@ -9,15 +7,10 @@ import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-final clientId = '5605260986374250325';
-final clientSecret = 'RBX-JaM0u4x_A0WMZledf3dOot1x81S8iP9BYZX3EkTM3NmYjfHflAa6XDhMQf8HMSE9';
-final redirectUri = 'fluttertest://return';
-final scope = 'openid+profile';
-final responseType = 'code';
-
 class LoginPage extends StatefulWidget {
-  late AuthService authService;
-  LoginPage({required this.authService});
+  const LoginPage({
+    super.key,
+  });
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -31,7 +24,8 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = true;  // show loading
       });
 
-      await RobloxAuth().authenticate(widget.authService);
+      final authService = Provider.of<AuthService>(context, listen: false);
+      await authService.oauthAuthenticate();
 
       setState(() {
         _isLoading = false;  // show loading

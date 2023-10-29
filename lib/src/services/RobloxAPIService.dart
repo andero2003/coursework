@@ -18,7 +18,8 @@ class RobloxAPIService {
           game_id: item['id'], 
           game_title: item['name'], 
           game_description: item['description'] ?? 'N/A', 
-          game_icon: (await fetchGameMediaById(item['id'])).data!
+          game_icon: (await fetchGameIconById(item['id'])).data!,
+          game_thumbnail: (await fetchGameThumbnailById(item['id'])).data!,
         ));
       }
       return FetchResult(ResultStatus.success, games);  // Assuming the games data is under a 'data' key
@@ -39,7 +40,8 @@ class RobloxAPIService {
           game_id: item['id'], 
           game_title: item['name'], 
           game_description: item['description'] ?? 'N/A', 
-          game_icon: (await fetchGameMediaById(item['id'])).data!
+          game_icon: (await fetchGameIconById(item['id'])).data!,
+          game_thumbnail: (await fetchGameThumbnailById(item['id'])).data!,
         ));
       }
       return FetchResult(ResultStatus.success, games);  // Assuming the games data is under a 'data' key
@@ -102,12 +104,23 @@ class RobloxAPIService {
     }
   }
 
-  Future<FetchResult<String?>> fetchGameMediaById(int universeId) async {
+  Future<FetchResult<String?>> fetchGameIconById(int universeId) async {
     final url = Uri.parse('https://thumbnails.roblox.com/v1/games/icons?universeIds=$universeId&returnPolicy=PlaceHolder&size=256x256&format=Png&isCircular=false');
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return FetchResult(ResultStatus.success, data['data'][0]['imageUrl']);
+    } else {
+      return FetchResult(ResultStatus.failure, null);
+    }
+  }
+
+  Future<FetchResult<String?>> fetchGameThumbnailById(int universeId) async {
+    final url = Uri.parse('https://thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=$universeId&countPerUniverse=1&defaults=true&size=768x432&format=Png&isCircular=false');
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return FetchResult(ResultStatus.success, data['data'][0]['thumbnails'][0]['imageUrl']);
     } else {
       return FetchResult(ResultStatus.failure, null);
     }

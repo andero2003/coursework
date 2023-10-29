@@ -136,16 +136,25 @@ class _ProjectsGridState extends State<ProjectsGrid> {
           game_id: project.project_id, 
           game_title: project.project_name, 
           game_description: project.project_name, 
-          game_icon: project.project_image
+          game_icon: project.project_icon,
+          game_thumbnail: project.project_thumbnail
         );
         return GameCardButton(
           game: game,
           onPressed: () {
-            Navigator.push(
-              context, 
-              MaterialPageRoute(
-                builder: (context) => ProjectCustomisationPage(project: project),
-              )
+            //Navigator.push(
+            //  context, 
+            //  MaterialPageRoute(
+            //    builder: (context) => ProjectCustomisationPage(project: project),
+            //  )
+            //);
+            showModalBottomSheet(
+              context: context, 
+              isScrollControlled: true,
+              builder: (context) => ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
+                child: ProjectCustomisationPage(project: project)
+              ),
             );
           },
         );

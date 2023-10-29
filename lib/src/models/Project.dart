@@ -6,7 +6,8 @@ import 'package:cwflutter/src/models/User.dart';
 class Project implements Serializable {
   final int project_id;
   final String project_name;
-  final String project_image;
+  final String project_icon;
+  final String project_thumbnail;
 
   List<Member> members = [];
   List<Task> tasks = [];
@@ -14,7 +15,8 @@ class Project implements Serializable {
   Project({
     required this.project_id,
     required this.project_name,
-    required this.project_image
+    required this.project_icon,
+    required this.project_thumbnail
   });
 
   Member addMember(User user, Role role) {
@@ -35,7 +37,8 @@ class Project implements Serializable {
     return {
       'project_id': project_id,
       'project_name': project_name,
-      'project_image': project_image,
+      'project_icon': project_icon,
+      'project_thumbnail': project_thumbnail,
       'members': members.map((member) => member.toMap()).toList(),
       'tasks': tasks.map((task) => task.toMap()).toList(),
     };
@@ -45,7 +48,8 @@ class Project implements Serializable {
     return Project(
       project_id: map['project_id'],
       project_name: map['project_name'],
-      project_image: map['project_image'],
+      project_icon: map['project_icon'],
+      project_thumbnail: map['project_thumbnail']
     )
     ..members = List<Member>.from(map['members']?.map((x) => Member.fromMap(x)) ?? [])
     ..tasks = List<Task>.from(map['tasks']?.map((x) => Task.fromMap(x)) ?? []);

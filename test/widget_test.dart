@@ -16,7 +16,6 @@ import 'package:cwflutter/main.dart';
 void main() async {
   final user = User(user_id: 13863572, username: 'DevAndero', avatar_image: "https://tr.rbxcdn.com/30DAY-AvatarHeadshot-CE7D8D582277E5C8F658DD07D85AF642-Png/150/150/AvatarHeadshot/Png/noFilter");
   final int universeId = 4791277194;
-  final FetchResult awaited = await RobloxAPIService().getUserIconsByIds([13863572]);
-
+  final FetchResult awaited = await RobloxAPIService().fetchGameThumbnailById(universeId);
   print(awaited.data);
 }

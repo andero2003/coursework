@@ -17,7 +17,8 @@ class ProjectService extends ChangeNotifier {
     Project project = Project(
       project_id: game.game_id, 
       project_name: game.game_title, 
-      project_image: game.game_icon
+      project_icon: game.game_icon,
+      project_thumbnail: game.game_thumbnail
     );
     project.addMember(loggedUser, Role.Owner);
     _firestoreService.setupProject(project);
@@ -29,6 +30,7 @@ class ProjectService extends ChangeNotifier {
         return member;
       }
     }
+    return null;
   }
 
   Stream<List<Member>> getProjectMembers(Project project) {

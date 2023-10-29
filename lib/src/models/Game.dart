@@ -5,12 +5,14 @@ class Game implements Serializable {
   final String game_title;
   final String game_description;
   final String game_icon;
+  final String game_thumbnail;
 
   Game({
     required this.game_id,
     required this.game_title,
     required this.game_description,
     required this.game_icon,
+    required this.game_thumbnail
     // Additional fields can be passed here
   });
   
@@ -22,6 +24,7 @@ class Game implements Serializable {
       'game_title': game_title,
       'game_description': game_description,
       'game_icon': game_icon,
+      'game_thumbnail': game_thumbnail
     };
   }
 
@@ -31,6 +34,7 @@ class Game implements Serializable {
       game_title: map['game_title'],
       game_description: map['game_description'],
       game_icon: map['game_icon'],
+      game_thumbnail: map['game_thumbnail']
     );
   }
   //

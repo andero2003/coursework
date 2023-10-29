@@ -126,6 +126,7 @@ class TeamMembersList extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => UserSearchPage(project: project,),));
                   }, 
+                  style: Theme.of(context).elevatedButtonTheme.style,
                   child: const Text("Add Member"),
                 ),
               );
@@ -139,7 +140,7 @@ class TeamMembersList extends StatelessWidget {
             Member loggedMember = Provider.of<ProjectService>(context, listen: false).getMemberFromUser(project, loggedUser)!;
             Role loggedUserRole = loggedMember.role;
             return Card(
-              color: Colors.grey.shade200,
+              color: Theme.of(context).listTileTheme.textColor,
               child: ListTile(
                 leading: CircleAvatar(
                   radius: 30,

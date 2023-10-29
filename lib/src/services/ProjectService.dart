@@ -16,7 +16,7 @@ class ProjectService extends ChangeNotifier {
     User loggedUser = _authService.loggedUser!;
     Project project = Project(
       project_id: game.game_id, 
-      project_name: game.game_title, 
+      project_name: game.game_description, 
       project_icon: game.game_icon,
       project_thumbnail: game.game_thumbnail
     );

@@ -5,6 +5,7 @@ import 'package:cwflutter/src/services/RobloxAPIService.dart';
 import 'package:cwflutter/src/models/User.dart';
 import 'package:cwflutter/src/services/FirestoreService.dart';
 import 'package:cwflutter/src/services/AuthService.dart';
+import 'package:cwflutter/src/services/ThemeService.dart';
 import 'package:cwflutter/src/views/newProjectPage.dart';
 import 'package:cwflutter/src/views/projectCustomisationPage.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,16 @@ class _DashboardPageState extends State<DashboardPage> {
             authService.logout();
           },
         )],
+      ),
+      drawer: const Drawer(
+          child: Column(
+            children: [
+              SizedBox(
+                height: 64,
+              ),
+              DarkModeSwitch()
+            ],
+          )
       ),
       body: Stack(
         children: [
@@ -113,6 +124,38 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
+class DarkModeSwitch extends StatefulWidget {
+  const DarkModeSwitch({
+    super.key,
+  });
+
+  @override
+  State<DarkModeSwitch> createState() => _DarkModeSwitchState();
+}
+
+class _DarkModeSwitchState extends State<DarkModeSwitch> {
+  @override
+  Widget build(BuildContext context) {
+    final themeService = Provider.of<ThemeService>(context);
+    bool isDarkMode = themeService.getThemeMode() == ThemeMode.dark;
+
+    return ListTile(
+      title: Text("Dark Mode"),
+      leading: Switch(
+        value: isDarkMode, 
+        onChanged: (value) {
+          isDarkMode = value;
+          if (value) {
+            themeService.setThemeMode(ThemeMode.dark);
+          } else {
+            themeService.setThemeMode(ThemeMode.light);          
+          }
+        }
+      )
+    );
+  }
+}
+
 class ProjectsGrid extends StatefulWidget {
   final List projects;
 
@@ -180,7 +223,7 @@ class GameCardButton extends StatelessWidget {
       child: MaterialButton(
         padding: EdgeInsets.zero,
         onPressed: onPressed,
-        color: Colors.grey.shade300,
+        color: Theme.of(context).cardColor,
         child: Row(
           children: [
             Padding(

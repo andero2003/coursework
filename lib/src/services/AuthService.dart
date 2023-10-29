@@ -105,10 +105,9 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> oauthAuthenticate() async {
-    //String? existingAccessToken = await authService.getAccessToken();
-    //print(existingAccessToken);
+    //String? existingAccessToken = await getAccessToken();
     //if (existingAccessToken != null) {
-    //  authService.login(existingAccessToken, null);
+    //  login(existingAccessToken, null);
     //  return null;
     //}
 

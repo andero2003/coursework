@@ -1,6 +1,7 @@
 import 'package:cwflutter/src/services/AuthService.dart';
 import 'package:cwflutter/src/services/FirestoreService.dart';
 import 'package:cwflutter/src/services/ProjectService.dart';
+import 'package:cwflutter/src/services/ThemeService.dart';
 import 'package:cwflutter/src/views/dashboard.dart';
 import 'package:cwflutter/src/views/loginPage.dart';
 import 'package:flutter/material.dart';
@@ -29,44 +30,76 @@ class _MyAppState extends State<MyApp> {
   late AuthService authService;
   late FirestoreService firestoreService;
   late ProjectService projectService;
+  late ThemeService themeService;
+
+  bool _initialized = false;
 
   @override
-  void initState() {
+  void initState() {    
+    super.initState();
+    _initialiseServices();
+  }
+
+  Future<void> _initialiseServices() async {
     authService = AuthService();
     firestoreService = FirestoreService();
     projectService = ProjectService(authService, firestoreService);
-    
-    super.initState();
+    themeService = await ThemeService.init();
+
+    setState(() {
+      _initialized = true;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_initialized) {
+      return const MaterialApp(
+        home: Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+    
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => authService),
         ChangeNotifierProvider(create: (_) => firestoreService),
-        ChangeNotifierProvider(create: (_) => projectService)
+        ChangeNotifierProvider(create: (_) => projectService),
+        ChangeNotifierProvider(create: (_) => themeService)
       ],
-      child: MaterialApp(
-          title: 'App',
-          themeMode: ThemeMode.light,
-          theme: ThemeData(
-            primarySwatch: Colors.indigo,
-            textTheme: GoogleFonts.montserratTextTheme()
-          ),
-          darkTheme: ThemeData.dark().copyWith(
-            textTheme: Typography().white.apply(fontFamily: GoogleFonts.montserrat().fontFamily)
-          ),
-          home: Consumer<AuthService>(
-            builder: (context, authService, _) {
-              if (authService.loggedUser != null) {
-                return DashboardPage(user: authService.loggedUser!);
-              } else {
-                return const LoginPage();
-              }              
-            }
-          )
-        )
+      child: ThemedApp()
+    );
+  }
+}
+
+class ThemedApp extends StatelessWidget {
+  const ThemedApp({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeService = Provider.of<ThemeService>(context);
+    return MaterialApp(
+      title: 'App',
+      themeMode: themeService.getThemeMode(),
+      theme: ThemeData(
+        primarySwatch: Colors.lightBlue,
+        textTheme: GoogleFonts.montserratTextTheme()
+      ),
+      darkTheme: ThemeData.dark().copyWith(
+        textTheme: Typography().white.apply(fontFamily: GoogleFonts.montserrat().fontFamily)
+      ),
+      home: Consumer<AuthService>(
+        builder: (context, authService, _) {
+          if (authService.loggedUser != null) {
+            return DashboardPage(user: authService.loggedUser!);
+          } else {
+            return const LoginPage();
+          }              
+        }
+      )
     );
   }
 }

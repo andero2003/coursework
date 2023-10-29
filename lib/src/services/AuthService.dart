@@ -52,27 +52,22 @@ class AuthService extends ChangeNotifier {
       if (expiryDate.isBefore(DateTime.now())) {
         // Token is expired
         String? refreshToken = await _secureStorage.read(key: 'refresh_token');
-        
         if (refreshToken != null) {
           // If refresh token exists, try to refresh the access token silently
           try {
-            final response = await http.post(
-              Uri.parse('https://apis.roblox.com/oauth/v1/token'),
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-              },
-              body: {
-                'grant-type': 'refresh_token',
-                'refresh_token': refreshToken,
-                'client_id': clientId,
-                'client_secret': clientSecret,
-              }
+            final TokenResponse? result = await _appAuth.token(
+              TokenRequest(
+                clientId, 
+                redirectUri, 
+                refreshToken: refreshToken, 
+                scopes: ['openid', 'profile']
+              )
             );
-            if (response.statusCode == 200) {
-              final data = json.decode(response.body);
-              print(data);
-            } 
-          } catch (error) {
+            if (result != null) {
+              print(result.accessToken);
+              return result.accessToken;
+            }
+          } catch (error) { 
             // Handle error (for example, force the user to log in again)
             await logout();
           }
@@ -105,11 +100,15 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> oauthAuthenticate() async {
-    //String? existingAccessToken = await getAccessToken();
-    //if (existingAccessToken != null) {
-    //  login(existingAccessToken, null);
-    //  return null;
-    //}
+    String? existingAccessToken = await getAccessToken();
+    if (existingAccessToken != null) {
+      try {
+        login(existingAccessToken, null);
+        return null;
+      } catch(e) {
+        //error handle
+      }
+    }
 
     try {
       final AuthorizationTokenResponse? result = await _appAuth.authorizeAndExchangeCode(

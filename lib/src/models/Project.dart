@@ -12,24 +12,25 @@ class Project implements Serializable {
   List<Member> members = [];
   List<Task> tasks = [];
 
-  Project({
-    required this.project_id,
-    required this.project_name,
-    required this.project_icon,
-    required this.project_thumbnail
-  });
+  Project(
+      {required this.project_id,
+      required this.project_name,
+      required this.project_icon,
+      required this.project_thumbnail});
 
   Member addMember(User user, Role role) {
-    Member member = Member(
-      user: user, 
-      role: role
-    );
+    Member member = Member(user: user, role: role);
     members.add(member);
     return member;
   }
 
   void removeMember(Member member) {
-    members.removeWhere((element) => element.user.user_id == member.user.user_id);
+    members
+        .removeWhere((element) => element.user.user_id == member.user.user_id);
+  }
+
+  void addTask(Task task) {
+    tasks.add(task);
   }
 
   @override
@@ -46,12 +47,13 @@ class Project implements Serializable {
 
   factory Project.fromMap(Map<String, dynamic> map) {
     return Project(
-      project_id: map['project_id'],
-      project_name: map['project_name'],
-      project_icon: map['project_icon'],
-      project_thumbnail: map['project_thumbnail']
-    )
-    ..members = List<Member>.from(map['members']?.map((x) => Member.fromMap(x)) ?? [])
-    ..tasks = List<Task>.from(map['tasks']?.map((x) => Task.fromMap(x)) ?? []);
+        project_id: map['project_id'],
+        project_name: map['project_name'],
+        project_icon: map['project_icon'],
+        project_thumbnail: map['project_thumbnail'])
+      ..members =
+          List<Member>.from(map['members']?.map((x) => Member.fromMap(x)) ?? [])
+      ..tasks =
+          List<Task>.from(map['tasks']?.map((x) => Task.fromMap(x)) ?? []);
   }
 }

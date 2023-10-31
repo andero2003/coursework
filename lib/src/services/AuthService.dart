@@ -7,7 +7,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 const clientId = '5605260986374250325';
-const clientSecret = 'RBX-JaM0u4x_A0WMZledf3dOot1x81S8iP9BYZX3EkTM3NmYjfHflAa6XDhMQf8HMSE9';
+const clientSecret =
+    'RBX-JaM0u4x_A0WMZledf3dOot1x81S8iP9BYZX3EkTM3NmYjfHflAa6XDhMQf8HMSE9';
 const redirectUri = 'fluttertest://redirect';
 const scope = 'openid+profile';
 const responseType = 'code';
@@ -27,16 +28,19 @@ class AuthService extends ChangeNotifier {
 
   Future<void> login(String accessToken, String? refreshToken) async {
     await _secureStorage.write(key: 'access_token', value: accessToken);
-    String expiryTime = DateTime.now().add(const Duration(minutes: 15)).toString();
+    String expiryTime =
+        DateTime.now().add(const Duration(minutes: 15)).toString();
     await _secureStorage.write(key: 'access_token_expiry', value: expiryTime);
     if (refreshToken != null) {
       await _secureStorage.write(key: 'refresh_token', value: refreshToken);
     }
 
     User? user = await getUserData(accessToken);
-    loggedUser = user;
+    if (user != null) {
+      loggedUser = user;
+    }
   }
-  
+
   Future<void> logout() async {
     await _secureStorage.delete(key: 'access_token');
     await _secureStorage.delete(key: 'user_id');
@@ -46,7 +50,7 @@ class AuthService extends ChangeNotifier {
   Future<String?> getAccessToken() async {
     String? accessToken = await _secureStorage.read(key: 'access_token');
     String? expiry = await _secureStorage.read(key: 'access_token_expiry');
-    
+
     if (accessToken != null && expiry != null) {
       DateTime expiryDate = DateTime.tryParse(expiry) ?? DateTime.now();
       if (expiryDate.isBefore(DateTime.now())) {
@@ -55,19 +59,14 @@ class AuthService extends ChangeNotifier {
         if (refreshToken != null) {
           // If refresh token exists, try to refresh the access token silently
           try {
-            final TokenResponse? result = await _appAuth.token(
-              TokenRequest(
-                clientId, 
-                redirectUri, 
-                refreshToken: refreshToken, 
-                scopes: ['openid', 'profile']
-              )
-            );
+            final TokenResponse? result = await _appAuth.token(TokenRequest(
+                clientId, redirectUri,
+                refreshToken: refreshToken, scopes: ['openid', 'profile']));
             if (result != null) {
               print(result.accessToken);
               return result.accessToken;
             }
-          } catch (error) { 
+          } catch (error) {
             // Handle error (for example, force the user to log in again)
             await logout();
           }
@@ -77,10 +76,10 @@ class AuthService extends ChangeNotifier {
         }
       }
     }
-    
+
     return accessToken;
   }
-  
+
   Future<User?> getUserData(String accessToken) async {
     final userInfoResponse = await http.get(
       Uri.parse('https://apis.roblox.com/oauth/v1/userinfo'),
@@ -88,40 +87,41 @@ class AuthService extends ChangeNotifier {
         'Authorization': 'Bearer $accessToken',
       },
     );
-    final Map<String, dynamic> userData = json.decode(userInfoResponse.body);
+    final Map<String, dynamic>? userData = json.decode(userInfoResponse.body);
+    if (userData == null || userData['error'] != null) {
+      return null;
+    }
     final username = userData['preferred_username'];
     final avatarUrl = userData['picture'];
     final userId = int.parse(userData['sub']);
-    return User(
-      user_id: userId, 
-      username: username, 
-      avatar_image: avatarUrl
-    );
+    return User(user_id: userId, username: username, avatar_image: avatarUrl);
   }
 
   Future<void> oauthAuthenticate() async {
+    /*
     String? existingAccessToken = await getAccessToken();
     if (existingAccessToken != null) {
       try {
         login(existingAccessToken, null);
         return null;
-      } catch(e) {
+      } catch (e) {
         //error handle
       }
     }
+    */
 
     try {
-      final AuthorizationTokenResponse? result = await _appAuth.authorizeAndExchangeCode(
-        AuthorizationTokenRequest(
-          clientId,
-          redirectUri,
-          discoveryUrl: 'https://apis.roblox.com/oauth/.well-known/openid-configuration',
-          scopes: ['openid', 'profile']
-        ),
+      final AuthorizationTokenResponse? result =
+          await _appAuth.authorizeAndExchangeCode(
+        AuthorizationTokenRequest(clientId, redirectUri,
+            discoveryUrl:
+                'https://apis.roblox.com/oauth/.well-known/openid-configuration',
+            scopes: ['openid', 'profile']),
       );
       login(result!.accessToken!, result.refreshToken!);
-    } catch(e) {
+    } catch (e) {
       //error handle
-    };
+    }
+    ;
   }
 }

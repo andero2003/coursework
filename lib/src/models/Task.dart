@@ -23,10 +23,11 @@ class Task implements Serializable {
   List<Member> assignedTo = [];
   TaskStatus status = TaskStatus.Pending;
 
-  Task({
-    required this.task_id,
-    required this.task_name,
-  });
+  Task(
+      {required this.task_id,
+      required this.task_name,
+      this.task_description,
+      this.deadline});
 
   @override
   Map<String, dynamic> toMap() {
@@ -45,9 +46,12 @@ class Task implements Serializable {
       task_id: map['task_id'],
       task_name: map['task_name'],
     )
-    ..task_description = map['task_description']
-    ..deadline = map['deadline'] != null ? DateTime.fromMillisecondsSinceEpoch(map['deadline']) : null
-    ..assignedTo = List<Member>.from(map['assignedTo']?.map((x) => Member.fromMap(x)) ?? [])
-    ..status = TaskStatusExtension.fromString(map['status']);
+      ..task_description = map['task_description']
+      ..deadline = map['deadline'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['deadline'])
+          : null
+      ..assignedTo = List<Member>.from(
+          map['assignedTo']?.map((x) => Member.fromMap(x)) ?? [])
+      ..status = TaskStatusExtension.fromString(map['status']);
   }
 }

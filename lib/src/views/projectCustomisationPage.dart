@@ -8,6 +8,7 @@ import 'package:cwflutter/src/services/RobloxAPIService.dart';
 import 'package:cwflutter/src/services/AuthService.dart';
 import 'package:cwflutter/src/services/FirestoreService.dart';
 import 'package:cwflutter/src/views/newTaskPage.dart';
+import 'package:cwflutter/src/views/taskCustomisationScreen.dart';
 import 'package:cwflutter/src/views/userSearchPage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -306,7 +307,15 @@ class TasksList extends StatelessWidget {
                     ),
                   ],
                 ),
-                trailing: IconButton(onPressed: () {}, icon: Icon(Icons.edit)),
+                trailing: IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => TaskCustomisationScreen(
+                                  project: project, task: task)));
+                    },
+                    icon: Icon(Icons.edit)),
               ),
             );
           },

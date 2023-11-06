@@ -170,21 +170,60 @@ class TeamMembersList extends StatelessWidget {
                         member.user.user_id == loggedUser.user_id ||
                         member.role == Role.Owner)
                     ? null
-                    : IconButton(
-                        icon: const Icon(
-                          Icons.delete,
-                          color: Colors.red,
-                        ),
-                        onPressed: () {
-                          Provider.of<ProjectService>(context, listen: false)
-                              .removeMemberFromProject(project, member);
-                        },
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(onPressed: () {}, icon: Icon(Icons.edit)),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                            ),
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) =>
+                                      MemberRemovalConfirmationScreen(
+                                          project: project, member: member));
+                            },
+                          ),
+                        ],
                       ),
               ),
             );
           },
         );
       },
+    );
+  }
+}
+
+class MemberRemovalConfirmationScreen extends StatelessWidget {
+  final Project project;
+  final Member member;
+
+  const MemberRemovalConfirmationScreen(
+      {super.key, required this.project, required this.member});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      icon: Icon(Icons.warning),
+      title: Text(
+          "Are you sure you want to remove ${member.user.username} from the project?"),
+      actions: [
+        TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text("CANCEL")),
+        TextButton(
+            onPressed: () {
+              Provider.of<ProjectService>(context, listen: false)
+                  .removeMemberFromProject(project, member);
+            },
+            child: Text("REMOVE")),
+      ],
     );
   }
 }

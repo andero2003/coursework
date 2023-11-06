@@ -70,6 +70,20 @@ class _NewTaskPageState extends State<NewTaskPage> {
             ),
             ElevatedButton(
               onPressed: () {
+                if (deadline == null) {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: Image.network(
+                            "https://t4.ftcdn.net/jpg/05/08/38/47/360_F_508384795_AaOb8TQgvq6BqOCbMXtAgEKZJofEXPOn.jpg",
+                            height: 64,
+                          ),
+                          content: Text("Please fill out all the fields!"),
+                        );
+                      });
+                  return;
+                }
                 Task task = Task(
                     task_id: 1,
                     task_name: title,

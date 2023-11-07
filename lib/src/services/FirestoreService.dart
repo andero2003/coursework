@@ -33,6 +33,12 @@ class FirestoreService extends ChangeNotifier {
     });
   }
 
+  Future<void> removeTaskFromProject(Project project, Task task) async {
+    await db.collection('projects').doc(project.project_id.toString()).update({
+      'tasks': FieldValue.arrayRemove([task.toMap()])
+    });
+  }
+
   Stream<List<Project>> getUserProjects(User user) {
     return db.collection('projects').snapshots().asyncMap(
       (querySnapshot) {

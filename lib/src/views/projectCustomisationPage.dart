@@ -209,21 +209,36 @@ class MemberRemovalConfirmationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      icon: Icon(Icons.warning),
-      title: Text(
-          "Are you sure you want to remove ${member.user.username} from the project?"),
+      backgroundColor: Colors.red.shade900,
+      title: Text("Remove Member"),
+      content: Row(
+        children: [
+          CircleAvatar(
+            backgroundImage: NetworkImage(member.user.avatar_image),
+            backgroundColor: Colors.grey.shade300,
+            radius: 20,
+          ),
+          SizedBox(width: 12,),
+          Expanded(
+            child: Text(
+                "Are you sure you want to remove ${member.user.username} from the project?",
+              ),
+          ),
+        ],
+      ),
       actions: [
         TextButton(
             onPressed: () {
               Navigator.pop(context);
             },
-            child: Text("CANCEL")),
+            child: Text("CANCEL", style: TextStyle(color: Colors.white),)),
         TextButton(
             onPressed: () {
               Provider.of<ProjectService>(context, listen: false)
                   .removeMemberFromProject(project, member);
+              Navigator.pop(context);
             },
-            child: Text("REMOVE")),
+            child: Text("REMOVE", style: TextStyle(color: Colors.white),)),
       ],
     );
   }
@@ -284,39 +299,91 @@ class TasksList extends StatelessWidget {
             Task task = tasks[index - 1];
             return Card(
               child: ListTile(
-                title: Text(task.task_name),
+                title: Text(
+                  task.task_name,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(task.task_description ?? "N/A"),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6, bottom: 2),
+                      child: Text(task.task_description ?? "N/A"),
+                    ),
                     SizedBox(height: 5),
-                    if (task.deadline != null)
-                      Row(
-                        children: [
-                          Icon(Icons.calendar_month),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 4, right: 4),
-                            child: Text(
-                              '${task.deadline.toString().split(' ')[0]}',
-                              style: TextStyle(
-                                color: Colors.redAccent,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                    Row(
+                      children: [
+                        if (task.assignedTo.length > 0)
+                          Row(
+                            children: [
+                              ...task.assignedTo.map((memberId) {
+                                Member member = project.getMemberById(memberId);
+                                return CircleAvatar(
+                                  backgroundImage: NetworkImage(member.user.avatar_image),
+                                  backgroundColor: Colors.grey.shade300,
+                                  radius: 20,
+                                );
+                              }).toList(), 
+                              SizedBox(width: 8,),
+                            ]
                           ),
-                        ],
-                      ),
+                        if (task.deadline != null)
+                          Row(
+                            children: [
+                              
+                              Icon(Icons.calendar_month),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4, right: 4),
+                                child: Text(
+                                  '${task.deadline.toString().split(' ')[0]}',
+                                  style: TextStyle(
+                                    color: Colors.redAccent,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
                   ],
                 ),
-                trailing: IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => TaskCustomisationScreen(
-                                  project: project, task: task)));
-                    },
-                    icon: Icon(Icons.edit)),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          showDialog(context: context, builder: (context) => AlertDialog(
+                            title: Text("Mark as Done?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                }, 
+                                child: Text("CANCEL")
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Provider.of<ProjectService>(context, listen: false).completeTask(project, task);
+                                  Navigator.pop(context);
+                                }, 
+                                child: Text("OK")
+                              )
+                            ],
+                          ));
+                        },
+                        icon: Icon(Icons.check_box)),
+                    IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => TaskCustomisationScreen(
+                                      project: project, task: task)));
+                        },
+                        icon: Icon(Icons.edit)),
+                  ],
+                ),
               ),
             );
           },

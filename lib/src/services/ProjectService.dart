@@ -50,6 +50,11 @@ class ProjectService extends ChangeNotifier {
     _firestoreService.removeMemberFromProject(project, member);
   }
 
+  Future<void> completeTask(Project project, Task task) async {
+    project.completeTask(task);
+    _firestoreService.removeTaskFromProject(project, task);
+  }
+
   Future<void> addTaskToProject(Project project, Task task) async {
     project.addTask(task);
     _firestoreService.addTaskToProject(project, task);

@@ -29,6 +29,19 @@ class Project implements Serializable {
         .removeWhere((element) => element.user.user_id == member.user.user_id);
   }
 
+  void completeTask(Task task) {
+    tasks.removeWhere((element) => element.task_id == task.task_id);
+  }
+
+  Member getMemberById(int id) {
+    for (Member member in members) {
+      if (member.user.user_id == id) {
+        return member;
+      }
+    }
+    throw Exception();
+  }
+
   void addTask(Task task) {
     tasks.add(task);
   }

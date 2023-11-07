@@ -1,5 +1,6 @@
 import 'package:cwflutter/src/models/Member.dart';
 import 'package:cwflutter/src/models/Serializable.dart';
+import 'package:uuid/uuid.dart';
 
 enum TaskStatus { Pending, InProgress, Completed, Rejected }
 
@@ -14,7 +15,7 @@ extension TaskStatusExtension on TaskStatus {
 }
 
 class Task implements Serializable {
-  final int task_id;
+  final String task_id;
   final String task_name;
 
   String? task_description;
@@ -24,10 +25,10 @@ class Task implements Serializable {
   TaskStatus status = TaskStatus.Pending;
 
   Task(
-      {required this.task_id,
+      {String? task_id,
       required this.task_name,
       this.task_description,
-      this.deadline});
+      this.deadline}) : task_id = task_id ?? Uuid().v4();
 
   @override
   Map<String, dynamic> toMap() {

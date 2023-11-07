@@ -154,7 +154,6 @@ class _NewTaskPageState extends State<NewTaskPage> {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
                     Task task = Task(
-                        task_id: 1,
                         task_name: title,
                         task_description: description,
                         deadline: deadline);

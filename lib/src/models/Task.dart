@@ -20,7 +20,7 @@ class Task implements Serializable {
   String? task_description;
   DateTime? deadline;
 
-  List<Member> assignedTo = [];
+  List<int> assignedTo = [];
   TaskStatus status = TaskStatus.Pending;
 
   Task(
@@ -36,7 +36,7 @@ class Task implements Serializable {
       'task_name': task_name,
       'task_description': task_description,
       'deadline': deadline?.millisecondsSinceEpoch,
-      'assignedTo': assignedTo.map((member) => member.toMap()).toList(),
+      'assignedTo': assignedTo,
       'status': status.toShortString(),
     };
   }
@@ -50,8 +50,7 @@ class Task implements Serializable {
       ..deadline = map['deadline'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['deadline'])
           : null
-      ..assignedTo = List<Member>.from(
-          map['assignedTo']?.map((x) => Member.fromMap(x)) ?? [])
+      ..assignedTo = List<int>.from(map['assignedTo'] ?? [])
       ..status = TaskStatusExtension.fromString(map['status']);
   }
 }

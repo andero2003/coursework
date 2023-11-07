@@ -290,21 +290,22 @@ class TasksList extends StatelessWidget {
                   children: [
                     Text(task.task_description ?? "N/A"),
                     SizedBox(height: 5),
-                    Row(
-                      children: [
-                        Icon(Icons.calendar_month),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 4, right: 4),
-                          child: Text(
-                            '${task.deadline.toString().split(' ')[0]}',
-                            style: TextStyle(
-                              color: Colors.redAccent,
-                              fontWeight: FontWeight.bold,
+                    if (task.deadline != null)
+                      Row(
+                        children: [
+                          Icon(Icons.calendar_month),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 4, right: 4),
+                            child: Text(
+                              '${task.deadline.toString().split(' ')[0]}',
+                              style: TextStyle(
+                                color: Colors.redAccent,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
                   ],
                 ),
                 trailing: IconButton(

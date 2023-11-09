@@ -65,9 +65,30 @@ class _ProjectCustomisationPageState extends State<ProjectCustomisationPage> {
                   //  child: Text("Team", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),),
                   //),
                   SizedBox(
-                    height: 400,
-                    child: Placeholder(),
-                  ),
+                      height: 400,
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                TextFormField(
+                                  readOnly: true,
+                                  maxLines: 3,
+                                  initialValue: project.project_description,
+                                  decoration: InputDecoration(
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (value) {
+                                    return null;
+                                  },
+                                  onSaved: (a) {},
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      )),
                 ],
               ),
             ),
@@ -227,7 +248,7 @@ class MemberRemovalConfirmationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: Colors.red.shade900,
-      title: Text("Remove Member"),
+      title: Text("Remove Member", style: TextStyle(color: Colors.white)),
       content: Row(
         children: [
           CircleAvatar(
@@ -235,11 +256,13 @@ class MemberRemovalConfirmationScreen extends StatelessWidget {
             backgroundColor: Colors.grey.shade300,
             radius: 20,
           ),
-          SizedBox(width: 12,),
+          SizedBox(
+            width: 12,
+          ),
           Expanded(
             child: Text(
                 "Are you sure you want to remove ${member.user.username} from the project?",
-              ),
+                style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -248,14 +271,20 @@ class MemberRemovalConfirmationScreen extends StatelessWidget {
             onPressed: () {
               Navigator.pop(context);
             },
-            child: Text("CANCEL", style: TextStyle(color: Colors.white),)),
+            child: Text(
+              "CANCEL",
+              style: TextStyle(color: Colors.white),
+            )),
         TextButton(
             onPressed: () {
               Provider.of<ProjectService>(context, listen: false)
                   .removeMemberFromProject(project, member);
               Navigator.pop(context);
             },
-            child: Text("REMOVE", style: TextStyle(color: Colors.white),)),
+            child: Text(
+              "REMOVE",
+              style: TextStyle(color: Colors.white),
+            )),
       ],
     );
   }
@@ -304,12 +333,11 @@ class TasksList extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => NewTaskPage(
-                            project: project,
-                            task: Task(
-                              task_name: "",
-                              task_description: "",
-                            )
-                          ),
+                              project: project,
+                              task: Task(
+                                task_name: "",
+                                task_description: "",
+                              )),
                         ));
                   },
                   style: Theme.of(context).elevatedButtonTheme.style,
@@ -335,26 +363,27 @@ class TasksList extends StatelessWidget {
                     Row(
                       children: [
                         if (task.assignedTo.length > 0)
-                          Row(
-                            children: [
-                              ...task.assignedTo.map((memberId) {
-                                Member member = project.getMemberById(memberId);
-                                return CircleAvatar(
-                                  backgroundImage: NetworkImage(member.user.avatar_image),
-                                  backgroundColor: Colors.grey.shade300,
-                                  radius: 20,
-                                );
-                              }).toList(), 
-                              SizedBox(width: 8,),
-                            ]
-                          ),
+                          Row(children: [
+                            ...task.assignedTo.map((memberId) {
+                              Member member = project.getMemberById(memberId);
+                              return CircleAvatar(
+                                backgroundImage:
+                                    NetworkImage(member.user.avatar_image),
+                                backgroundColor: Colors.grey.shade300,
+                                radius: 20,
+                              );
+                            }).toList(),
+                            SizedBox(
+                              width: 8,
+                            ),
+                          ]),
                         if (task.deadline != null)
                           Row(
                             children: [
-                              
                               Icon(Icons.calendar_month),
                               Padding(
-                                padding: const EdgeInsets.only(left: 4, right: 4),
+                                padding:
+                                    const EdgeInsets.only(left: 4, right: 4),
                                 child: Text(
                                   '${task.deadline.toString().split(' ')[0]}',
                                   style: TextStyle(
@@ -374,24 +403,26 @@ class TasksList extends StatelessWidget {
                   children: [
                     IconButton(
                         onPressed: () {
-                          showDialog(context: context, builder: (context) => AlertDialog(
-                            title: Text("Mark as Done?"),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                }, 
-                                child: Text("CANCEL")
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Provider.of<ProjectService>(context, listen: false).completeTask(project, task);
-                                  Navigator.pop(context);
-                                }, 
-                                child: Text("OK")
-                              )
-                            ],
-                          ));
+                          showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                    title: Text("Mark as Done?"),
+                                    actions: [
+                                      TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: Text("CANCEL")),
+                                      TextButton(
+                                          onPressed: () {
+                                            Provider.of<ProjectService>(context,
+                                                    listen: false)
+                                                .completeTask(project, task);
+                                            Navigator.pop(context);
+                                          },
+                                          child: Text("OK"))
+                                    ],
+                                  ));
                         },
                         icon: Icon(Icons.check_box)),
                     IconButton(

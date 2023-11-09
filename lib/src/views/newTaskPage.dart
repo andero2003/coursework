@@ -42,8 +42,10 @@ class _NewTaskPageState extends State<NewTaskPage> {
       deadline = task.deadline;
       assignedTo = task.assignedTo;
 
-      String formattedDate = deadline.toString().split(' ')[0];
-      _deadlineController.text = formattedDate;
+      if (deadline != null) {
+        String formattedDate = deadline.toString().split(' ')[0];
+        _deadlineController.text = formattedDate;
+      }
 
       isEditing = true;
     }
@@ -159,9 +161,11 @@ class _NewTaskPageState extends State<NewTaskPage> {
                       borderColor: Colors.grey,
                       optionsBackgroundColor: Colors.transparent,
                       dropdownHeight: 100,
-                      selectedOptions: assignedTo.map((memberId) { 
+                      selectedOptions: assignedTo.map((memberId) {
                         Member member = widget.project.getMemberById(memberId);
-                        return ValueItem(label: member.user.username, value: memberId.toString());
+                        return ValueItem(
+                            label: member.user.username,
+                            value: memberId.toString());
                       }).toList(),
                       selectedOptionBackgroundColor: Colors.transparent,
                       backgroundColor: Colors.transparent,
@@ -191,10 +195,10 @@ class _NewTaskPageState extends State<NewTaskPage> {
                     if (isEditing) {
                       task.task_id = widget.task!.task_id;
                       Provider.of<ProjectService>(context, listen: false)
-                        .updateTask(widget.project, task);                     
+                          .updateTask(widget.project, task);
                     } else {
-                     Provider.of<ProjectService>(context, listen: false)
-                        .addTaskToProject(widget.project, task);
+                      Provider.of<ProjectService>(context, listen: false)
+                          .addTaskToProject(widget.project, task);
                     }
                     Navigator.pop(context);
                   }

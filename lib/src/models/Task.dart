@@ -15,7 +15,7 @@ extension TaskStatusExtension on TaskStatus {
 }
 
 class Task implements Serializable {
-  final String task_id;
+  String task_id;
   final String task_name;
 
   String? task_description;
@@ -29,6 +29,8 @@ class Task implements Serializable {
       required this.task_name,
       this.task_description,
       this.deadline}) : task_id = task_id ?? Uuid().v4();
+
+  set title(String title) {}
 
   @override
   Map<String, dynamic> toMap() {

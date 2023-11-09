@@ -1,4 +1,5 @@
 import 'package:cwflutter/src/models/FetchResult.dart';
+import 'package:cwflutter/src/models/Member.dart';
 import 'package:cwflutter/src/models/Project.dart';
 import 'package:cwflutter/src/models/Task.dart';
 import 'package:cwflutter/src/models/User.dart';
@@ -6,13 +7,15 @@ import 'package:cwflutter/src/services/ProjectService.dart';
 import 'package:cwflutter/src/services/RobloxAPIService.dart';
 import 'package:cwflutter/src/services/FirestoreService.dart';
 import 'package:flutter/material.dart';
+import 'package:multi_dropdown/models/value_item.dart';
 import 'package:multi_dropdown/multiselect_dropdown.dart';
 import 'package:provider/provider.dart';
 
 class NewTaskPage extends StatefulWidget {
   final Project project;
+  final Task? task;
 
-  const NewTaskPage({super.key, required this.project});
+  const NewTaskPage({super.key, required this.project, this.task});
 
   @override
   State<NewTaskPage> createState() => _NewTaskPageState();
@@ -25,6 +28,26 @@ class _NewTaskPageState extends State<NewTaskPage> {
   DateTime? deadline;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _deadlineController = TextEditingController();
+
+  bool isEditing = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    if (widget.task != null) {
+      Task task = widget.task!;
+      title = task.task_name;
+      description = task.task_description ?? "N/A";
+      deadline = task.deadline;
+      assignedTo = task.assignedTo;
+
+      String formattedDate = deadline.toString().split(' ')[0];
+      _deadlineController.text = formattedDate;
+
+      isEditing = true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +62,7 @@ class _NewTaskPageState extends State<NewTaskPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
+                  initialValue: title,
                   decoration: InputDecoration(
                     labelText: 'Task Title',
                     border: OutlineInputBorder(),
@@ -55,6 +79,7 @@ class _NewTaskPageState extends State<NewTaskPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
+                  initialValue: description,
                   maxLines: 3,
                   decoration: InputDecoration(
                     labelText: 'Task Description',
@@ -80,7 +105,7 @@ class _NewTaskPageState extends State<NewTaskPage> {
                           onTap: () async {
                             DateTime? pickedDate = await showDatePicker(
                               context: context,
-                              initialDate: DateTime.now(),
+                              initialDate: deadline ?? DateTime.now(),
                               firstDate: DateTime.now(),
                               lastDate: DateTime(2100),
                             );
@@ -134,7 +159,12 @@ class _NewTaskPageState extends State<NewTaskPage> {
                       borderColor: Colors.grey,
                       optionsBackgroundColor: Colors.transparent,
                       dropdownHeight: 100,
-                      backgroundColor: Color.fromARGB(0, 0, 0, 0),
+                      selectedOptions: assignedTo.map((memberId) { 
+                        Member member = widget.project.getMemberById(memberId);
+                        return ValueItem(label: member.user.username, value: memberId.toString());
+                      }).toList(),
+                      selectedOptionBackgroundColor: Colors.transparent,
+                      backgroundColor: Colors.transparent,
                       optionTextStyle:
                           TextStyle(color: Theme.of(context).hintColor),
                       onOptionSelected: ((selectedOptions) {
@@ -158,13 +188,19 @@ class _NewTaskPageState extends State<NewTaskPage> {
                         task_description: description,
                         deadline: deadline);
                     task.assignedTo = assignedTo;
-                    Provider.of<ProjectService>(context, listen: false)
+                    if (isEditing) {
+                      task.task_id = widget.task!.task_id;
+                      Provider.of<ProjectService>(context, listen: false)
+                        .updateTask(widget.project, task);                     
+                    } else {
+                     Provider.of<ProjectService>(context, listen: false)
                         .addTaskToProject(widget.project, task);
+                    }
                     Navigator.pop(context);
                   }
                 },
                 style: Theme.of(context).elevatedButtonTheme.style,
-                child: const Text("Add Task"),
+                child: Text(isEditing ? "Confirm Edits" : "Add Task"),
               ),
             ],
           ),

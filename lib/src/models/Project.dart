@@ -8,6 +8,7 @@ class Project implements Serializable {
   final String project_name;
   final String project_icon;
   final String project_thumbnail;
+  final String project_description;
 
   List<Member> members = [];
   List<Task> tasks = [];
@@ -16,7 +17,8 @@ class Project implements Serializable {
       {required this.project_id,
       required this.project_name,
       required this.project_icon,
-      required this.project_thumbnail});
+      required this.project_thumbnail,
+      required this.project_description });
 
   Member addMember(User user, Role role) {
     Member member = Member(user: user, role: role);
@@ -52,6 +54,7 @@ class Project implements Serializable {
       'project_id': project_id,
       'project_name': project_name,
       'project_icon': project_icon,
+      'project_description': project_description,
       'project_thumbnail': project_thumbnail,
       'members': members.map((member) => member.toMap()).toList(),
       'tasks': tasks.map((task) => task.toMap()).toList(),
@@ -63,6 +66,7 @@ class Project implements Serializable {
         project_id: map['project_id'],
         project_name: map['project_name'],
         project_icon: map['project_icon'],
+        project_description: map['project_description'],
         project_thumbnail: map['project_thumbnail'])
       ..members =
           List<Member>.from(map['members']?.map((x) => Member.fromMap(x)) ?? [])

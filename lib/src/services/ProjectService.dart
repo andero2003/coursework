@@ -17,7 +17,8 @@ class ProjectService extends ChangeNotifier {
     User loggedUser = _authService.loggedUser!;
     Project project = Project(
         project_id: game.game_id,
-        project_name: game.game_description,
+        project_name: game.game_title,
+        project_description: game.game_description,
         project_icon: game.game_icon,
         project_thumbnail: game.game_thumbnail);
     project.addMember(loggedUser, Role.Owner);
@@ -58,5 +59,11 @@ class ProjectService extends ChangeNotifier {
   Future<void> addTaskToProject(Project project, Task task) async {
     project.addTask(task);
     _firestoreService.addTaskToProject(project, task);
+  }
+
+  Future<void> updateTask(Project project, Task task) async {
+    int taskIndex = project.tasks.indexWhere((element) => element.task_id == task.task_id);
+    project.tasks[taskIndex] = task;
+    _firestoreService.updateTask(project, task);
   }
 }

@@ -84,4 +84,9 @@ class FirestoreService extends ChangeNotifier {
       return tasks;
     });
   }
+
+  Future<void> updateTask(Project project, Task task) async {
+
+      //TODO
+  }
 }

@@ -8,7 +8,6 @@ import 'package:cwflutter/src/services/RobloxAPIService.dart';
 import 'package:cwflutter/src/services/AuthService.dart';
 import 'package:cwflutter/src/services/FirestoreService.dart';
 import 'package:cwflutter/src/views/newTaskPage.dart';
-import 'package:cwflutter/src/views/taskCustomisationScreen.dart';
 import 'package:cwflutter/src/views/userSearchPage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -40,12 +39,13 @@ class _ProjectCustomisationPageState extends State<ProjectCustomisationPage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2, // Assuming 2 tabs: Members and Tasks
+      length: 3, // Assuming 2 tabs: Members and Tasks
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.project.project_name),
           bottom: TabBar(
             tabs: [
+              Tab(text: 'Overview'),
               Tab(text: 'Members'),
               Tab(text: 'Tasks'),
               // Add more tabs if needed.
@@ -54,6 +54,23 @@ class _ProjectCustomisationPageState extends State<ProjectCustomisationPage> {
         ),
         body: TabBarView(
           children: [
+            SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  //Image.network(widget.project.project_thumbnail),
+                  //const SizedBox(height: 10,),
+                  //const Padding(
+                  //  padding: EdgeInsets.all(12.0),
+                  //  child: Text("Team", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),),
+                  //),
+                  SizedBox(
+                    height: 400,
+                    child: Placeholder(),
+                  ),
+                ],
+              ),
+            ),
             SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -288,6 +305,10 @@ class TasksList extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) => NewTaskPage(
                             project: project,
+                            task: Task(
+                              task_name: "",
+                              task_description: "",
+                            )
                           ),
                         ));
                   },
@@ -378,7 +399,7 @@ class TasksList extends StatelessWidget {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => TaskCustomisationScreen(
+                                  builder: (context) => NewTaskPage(
                                       project: project, task: task)));
                         },
                         icon: Icon(Icons.edit)),

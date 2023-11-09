@@ -178,7 +178,7 @@ class _ProjectsGridState extends State<ProjectsGrid> {
         final Game game = Game(
           game_id: project.project_id, 
           game_title: project.project_name, 
-          game_description: project.project_name, 
+          game_description: project.project_description, 
           game_icon: project.project_icon,
           game_thumbnail: project.project_thumbnail
         );

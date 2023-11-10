@@ -9,79 +9,98 @@ class FirestoreService extends ChangeNotifier {
   final db = FirebaseFirestore.instance;
 
   Future<void> setupProject(Project project) async {
-    await db
-        .collection('projects')
-        .doc(project.project_id.toString())
-        .set(project.toMap());
+    final projectRef = db.collection('projects').doc(project.project_id.toString());
+
+    final tasksCollection = projectRef.collection('tasks');
+    final membersCollection = projectRef.collection('members');
+
+    final projectMap = project.toMap();
+
+    projectRef.set(projectMap);
+
+    project.tasks.forEach((task) { 
+      tasksCollection.doc(task.task_id).set(task.toMap());
+    });
+
+    project.members.forEach((member) { 
+      membersCollection.doc(member.user.user_id.toString()).set(member.toMap());
+    });
   }
 
   Future<void> addMemberToProject(Project project, Member member) async {
-    await db.collection('projects').doc(project.project_id.toString()).update({
-      'members': FieldValue.arrayUnion([member.toMap()])
-    });
+    final projectRef = db.collection('projects').doc(project.project_id.toString());
+    final membersCollection = projectRef.collection('members');
+    membersCollection.doc(member.user.user_id.toString()).set(member.toMap());
   }
 
   Future<void> addTaskToProject(Project project, Task task) async {
-    await db.collection('projects').doc(project.project_id.toString()).update({
-      'tasks': FieldValue.arrayUnion([task.toMap()])
-    });
+    final projectRef = db.collection('projects').doc(project.project_id.toString());
+    final tasksCollection = projectRef.collection('tasks');
+    tasksCollection.doc(task.task_id).set(task.toMap());
   }
 
   Future<void> removeMemberFromProject(Project project, Member member) async {
-    await db.collection('projects').doc(project.project_id.toString()).update({
-      'members': FieldValue.arrayRemove([member.toMap()])
-    });
+    final projectRef = db.collection('projects').doc(project.project_id.toString());
+    final membersCollection = projectRef.collection('members');
+    membersCollection.doc(member.user.user_id.toString()).delete();
   }
 
   Future<void> removeTaskFromProject(Project project, Task task) async {
-    await db.collection('projects').doc(project.project_id.toString()).update({
-      'tasks': FieldValue.arrayRemove([task.toMap()])
-    });
+    final projectRef = db.collection('projects').doc(project.project_id.toString());
+    final tasksCollection = projectRef.collection('tasks');
+    tasksCollection.doc(task.task_id).delete();
   }
 
   Stream<List<Project>> getUserProjects(User user) {
+    List<Project> projectsWithMember = [];
     return db.collection('projects').snapshots().asyncMap(
-      (querySnapshot) {
-        final filteredDocs = querySnapshot.docs.where(
-          (doc) {
-            List members = doc['members'] as List;
-            return members.any(
-                (member) => (member['user'] as Map)['user_id'] == user.user_id);
-          },
-        ).toList();
+      (querySnapshot) async {
+        for (var project in querySnapshot.docs) { //unoptimized code get rid in the future!
+          final membersCollection = project.reference.collection('members');
+          final tasksCollection = project.reference.collection('tasks');
+          var memberSnapshot = await membersCollection.doc(user.user_id.toString()).get();
+          if (memberSnapshot.exists) {
+            final newProject = Project.fromMap(project.data());
+            var membersSnapshots = await membersCollection.get();
+            // Convert each member document to a Member object
+            List<Member> members = membersSnapshots.docs.map((doc) {
+              return Member.fromMap(doc.data() as Map<String, dynamic>);
+            }).toList();
+            var tasksSnapshots = await tasksCollection.get();
+            // Convert each member document to a Member object
+            List<Task> tasks = tasksSnapshots.docs.map((doc) {
+              return Task.fromMap(doc.data() as Map<String, dynamic>);
+            }).toList();
 
-        return filteredDocs.map((doc) => Project.fromMap(doc.data())).toList();
+            newProject.members = members;
+            newProject.tasks = tasks;
+
+            projectsWithMember.add(newProject);
+          }
+        }
+
+        return projectsWithMember;
       },
     );
   }
 
   Stream<List<Member>> getProjectMembers(Project project) {
-    return db
-        .collection('projects')
-        .doc(project.project_id.toString())
-        .snapshots()
-        .asyncMap((snapshot) {
-      List<Member> members = [];
-      var membersData = snapshot.data()?['members'] as List? ?? [];
-      for (var memberData in membersData) {
-        members.add(Member.fromMap(memberData as Map<String, dynamic>));
-      }
-      return members;
+    final membersCollection = db.collection('projects').doc(project.project_id.toString()).collection('members');
+
+    return membersCollection.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return Member.fromMap(doc.data() as Map<String, dynamic>);
+      }).toList();
     });
   }
 
   Stream<List<Task>> getProjectTasks(Project project) {
-    return db
-        .collection('projects')
-        .doc(project.project_id.toString())
-        .snapshots()
-        .asyncMap((snapshot) {
-      List<Task> tasks = [];
-      var tasksData = snapshot.data()?['tasks'] as List? ?? [];
-      for (var taskData in tasksData) {
-        tasks.add(Task.fromMap(taskData as Map<String, dynamic>));
-      }
-      return tasks;
+    final tasksCollection = db.collection('projects').doc(project.project_id.toString()).collection('tasks');
+
+    return tasksCollection.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return Task.fromMap(doc.data() as Map<String, dynamic>);
+      }).toList();
     });
   }
 

@@ -56,8 +56,6 @@ class Project implements Serializable {
       'project_icon': project_icon,
       'project_description': project_description,
       'project_thumbnail': project_thumbnail,
-      'members': members.map((member) => member.toMap()).toList(),
-      'tasks': tasks.map((task) => task.toMap()).toList(),
     };
   }
 
@@ -67,10 +65,6 @@ class Project implements Serializable {
         project_name: map['project_name'],
         project_icon: map['project_icon'],
         project_description: map['project_description'],
-        project_thumbnail: map['project_thumbnail'])
-      ..members =
-          List<Member>.from(map['members']?.map((x) => Member.fromMap(x)) ?? [])
-      ..tasks =
-          List<Task>.from(map['tasks']?.map((x) => Task.fromMap(x)) ?? []);
+        project_thumbnail: map['project_thumbnail']);
   }
 }

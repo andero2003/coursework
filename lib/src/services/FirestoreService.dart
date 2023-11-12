@@ -3,10 +3,12 @@ import 'package:cwflutter/src/models/Member.dart';
 import 'package:cwflutter/src/models/Project.dart';
 import 'package:cwflutter/src/models/Task.dart';
 import 'package:cwflutter/src/models/User.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 
 class FirestoreService extends ChangeNotifier {
   final db = FirebaseFirestore.instance;
+
 
   Future<void> setupProject(Project project) async {
     final projectRef = db.collection('projects').doc(project.project_id.toString());
@@ -30,25 +32,25 @@ class FirestoreService extends ChangeNotifier {
   Future<void> addMemberToProject(Project project, Member member) async {
     final projectRef = db.collection('projects').doc(project.project_id.toString());
     final membersCollection = projectRef.collection('members');
-    membersCollection.doc(member.user.user_id.toString()).set(member.toMap());
+    await membersCollection.doc(member.user.user_id.toString()).set(member.toMap());
   }
 
   Future<void> addTaskToProject(Project project, Task task) async {
     final projectRef = db.collection('projects').doc(project.project_id.toString());
     final tasksCollection = projectRef.collection('tasks');
-    tasksCollection.doc(task.task_id).set(task.toMap());
+    await tasksCollection.doc(task.task_id).set(task.toMap());
   }
 
   Future<void> removeMemberFromProject(Project project, Member member) async {
     final projectRef = db.collection('projects').doc(project.project_id.toString());
     final membersCollection = projectRef.collection('members');
-    membersCollection.doc(member.user.user_id.toString()).delete();
+    await membersCollection.doc(member.user.user_id.toString()).delete();
   }
 
   Future<void> removeTaskFromProject(Project project, Task task) async {
     final projectRef = db.collection('projects').doc(project.project_id.toString());
     final tasksCollection = projectRef.collection('tasks');
-    tasksCollection.doc(task.task_id).delete();
+    await tasksCollection.doc(task.task_id).delete();
   }
 
   Stream<List<Project>> getUserProjects(User user) {
@@ -105,7 +107,8 @@ class FirestoreService extends ChangeNotifier {
   }
 
   Future<void> updateTask(Project project, Task task) async {
-
-      //TODO
+    final projectRef = db.collection('projects').doc(project.project_id.toString());
+    final tasksCollection = projectRef.collection('tasks');
+    await tasksCollection.doc(task.task_id).set(task.toMap());
   }
 }

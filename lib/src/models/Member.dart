@@ -16,6 +16,10 @@ extension RoleExtension on Role {
 class Member implements Serializable {
   final User user;
   final Role role;
+  Map status = {
+    'timestamp': 0,
+    'status': 'Offline'
+  };
 
   Member({
     required this.user,
@@ -27,6 +31,7 @@ class Member implements Serializable {
     return {
       'user': user.toMap(),
       'role': role.toShortString(),
+      'status': status
     };
   }
 
@@ -34,6 +39,6 @@ class Member implements Serializable {
     return Member(
       user: User.fromMap(map['user']),
       role: RoleExtension.fromString(map['role']),
-    );
+    )..status = map['status'];
   }
 }

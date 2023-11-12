@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cwflutter/src/models/Member.dart';
 import 'package:cwflutter/src/models/Project.dart';
@@ -10,6 +12,8 @@ import 'package:cwflutter/src/services/FirestoreService.dart';
 import 'package:cwflutter/src/views/newTaskPage.dart';
 import 'package:cwflutter/src/views/userSearchPage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class ProjectCustomisationPage extends StatefulWidget {
@@ -166,6 +170,10 @@ class TeamMembersList extends StatelessWidget {
             String avatar_image = member.user.avatar_image;
             String role = member.role.toShortString();
 
+            String status = member.status['status'];
+            DateTime timestamp = DateTime.fromMillisecondsSinceEpoch((member.status['timestamp']-1) * 1000);
+            bool isInScript = status.endsWith('.lua');
+
             User loggedUser =
                 Provider.of<AuthService>(context, listen: false).loggedUser!;
             Member loggedMember =
@@ -181,7 +189,25 @@ class TeamMembersList extends StatelessWidget {
                   username,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: Text(role),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(role),
+                    isInScript ? Row(
+                      children: [
+                        SvgPicture.network(
+                          'https://upload.wikimedia.org/wikipedia/commons/5/58/Roblox_Studio_logo_2021_present.svg',  // Replace with the path to your Roblox logo image file
+                          width: 24,
+                          height: 24,
+                        ),
+                        SizedBox(width: 5,),
+                        Text(member.status['status'], style: TextStyle(color: Colors.blueAccent),)
+                      ],
+                    ) : Text(member.status['status'], style: TextStyle(color: Colors.blueAccent),),
+                    if (isInScript) TaskStatusWidget(startTime: timestamp)
+                    
+                  ],
+                ),
                 trailing: (loggedUserRole == Role.Viewer ||
                         member.user.user_id == loggedUser.user_id ||
                         member.role == Role.Owner)
@@ -211,6 +237,51 @@ class TeamMembersList extends StatelessWidget {
         );
       },
     );
+  }
+}
+class TaskStatusWidget extends StatefulWidget {
+  final DateTime startTime;
+
+  TaskStatusWidget({Key? key, required this.startTime}) : super(key: key);
+
+  @override
+  _TaskStatusWidgetState createState() => _TaskStatusWidgetState();
+}
+
+class _TaskStatusWidgetState extends State<TaskStatusWidget> {
+  Timer? _timer;
+  Duration _elapsed = Duration();
+
+  void _startTimer() {
+    _timer?.cancel(); // Cancel any previous timer
+    _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
+      setState(() {
+        _elapsed = DateTime.now().difference(widget.startTime);
+      });
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+      _elapsed = DateTime.now().difference(widget.startTime);
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Format the elapsed duration as hours:minutes:seconds
+    String formattedElapsed = DateFormat('HH:mm:ss').format(DateTime.fromMillisecondsSinceEpoch(_elapsed.inMilliseconds, isUtc: true));
+
+    return
+        Text('$formattedElapsed elapsed', style: TextStyle(color: const Color.fromARGB(255, 14, 75, 179)),);
+    
   }
 }
 
@@ -311,6 +382,7 @@ class TasksList extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) => NewTaskPage(
                               project: project,
+                              isEditing: false,
                               task: Task(
                                 task_name: "",
                                 task_description: "",
@@ -408,7 +480,7 @@ class TasksList extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                   builder: (context) => NewTaskPage(
-                                      project: project, task: task)));
+                                      project: project, task: task, isEditing: true,)));
                         },
                         icon: const Icon(Icons.edit)),
                   ],

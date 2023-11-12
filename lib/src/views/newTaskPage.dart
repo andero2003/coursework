@@ -14,8 +14,9 @@ import 'package:provider/provider.dart';
 class NewTaskPage extends StatefulWidget {
   final Project project;
   final Task? task;
+  final bool isEditing;
 
-  const NewTaskPage({super.key, required this.project, this.task});
+  const NewTaskPage({super.key, required this.project, required this.isEditing, this.task});
 
   @override
   State<NewTaskPage> createState() => _NewTaskPageState();
@@ -28,8 +29,6 @@ class _NewTaskPageState extends State<NewTaskPage> {
   DateTime? deadline;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _deadlineController = TextEditingController();
-
-  bool isEditing = false;
 
   @override
   void initState() {
@@ -46,8 +45,6 @@ class _NewTaskPageState extends State<NewTaskPage> {
         String formattedDate = deadline.toString().split(' ')[0];
         _deadlineController.text = formattedDate;
       }
-
-      isEditing = true;
     }
   }
 
@@ -192,7 +189,7 @@ class _NewTaskPageState extends State<NewTaskPage> {
                         task_description: description,
                         deadline: deadline);
                     task.assignedTo = assignedTo;
-                    if (isEditing) {
+                    if (widget.isEditing) {
                       task.task_id = widget.task!.task_id;
                       Provider.of<ProjectService>(context, listen: false)
                           .updateTask(widget.project, task);
@@ -204,7 +201,7 @@ class _NewTaskPageState extends State<NewTaskPage> {
                   }
                 },
                 style: Theme.of(context).elevatedButtonTheme.style,
-                child: Text(isEditing ? "Confirm Edits" : "Add Task"),
+                child: Text(widget.isEditing ? "Confirm Edits" : "Add Task"),
               ),
             ],
           ),

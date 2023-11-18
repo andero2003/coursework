@@ -9,7 +9,7 @@ import 'package:cwflutter/src/services/ProjectService.dart';
 import 'package:cwflutter/src/services/RobloxAPIService.dart';
 import 'package:cwflutter/src/services/AuthService.dart';
 import 'package:cwflutter/src/services/FirestoreService.dart';
-import 'package:cwflutter/src/views/newTaskPage.dart';
+import 'package:cwflutter/src/views/NewTaskPage.dart';
 import 'package:cwflutter/src/views/userSearchPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -58,18 +58,49 @@ class _ProjectCustomisationPageState extends State<ProjectCustomisationPage> {
         ),
         body: TabBarView(
           children: [
-            const SingleChildScrollView(
+            SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  //Image.network(widget.project.project_thumbnail),
-                  //const SizedBox(height: 10,),
-                  //const Padding(
-                  //  padding: EdgeInsets.all(12.0),
-                  //  child: Text("Team", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),),
-                  //),
-                  SizedBox(
-                      height: 400,),
+                    Image.network(
+                      project.project_thumbnail,
+                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                        if (loadingProgress == null) return child; // Image is fully loaded
+                        return Center(
+                          // Show a loading indicator while the image is loading
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
+                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                        // Handle any errors that occur during loading
+                        return Text('Error loading image');
+                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(10.0),
+                        margin: EdgeInsets.only(top: 5.0),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10), // Rounded corners
+                        ),
+                        child: Text(
+                          project.project_description,
+                          textAlign: TextAlign.justify,
+                          style: TextStyle(
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    )
                 ],
               ),
             ),

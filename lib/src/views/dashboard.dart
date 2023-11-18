@@ -6,7 +6,7 @@ import 'package:cwflutter/src/models/User.dart';
 import 'package:cwflutter/src/services/FirestoreService.dart';
 import 'package:cwflutter/src/services/AuthService.dart';
 import 'package:cwflutter/src/services/ThemeService.dart';
-import 'package:cwflutter/src/views/newProjectPage.dart';
+import 'package:cwflutter/src/views/NewProjectPage.dart';
 import 'package:cwflutter/src/views/projectCustomisationPage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

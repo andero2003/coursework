@@ -3,7 +3,6 @@ import 'package:cwflutter/src/models/Member.dart';
 import 'package:cwflutter/src/models/Project.dart';
 import 'package:cwflutter/src/models/Task.dart';
 import 'package:cwflutter/src/models/User.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 
 class FirestoreService extends ChangeNotifier {

@@ -3,7 +3,7 @@ import 'package:cwflutter/src/services/FirestoreService.dart';
 import 'package:cwflutter/src/services/ProjectService.dart';
 import 'package:cwflutter/src/services/ThemeService.dart';
 import 'package:cwflutter/src/views/dashboard.dart';
-import 'package:cwflutter/src/views/loginPage.dart';
+import 'package:cwflutter/src/views/LoginPage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';

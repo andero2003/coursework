@@ -88,7 +88,8 @@ class ThemedApp extends StatelessWidget {
       themeMode: themeService.getThemeMode(),
       theme: ThemeData(
         primarySwatch: Colors.lightBlue,
-        textTheme: GoogleFonts.montserratTextTheme()
+        fontFamily: "Gotham"
+        //textTheme: GoogleFonts.montserratTextTheme()
       ),
       darkTheme: ThemeData.dark().copyWith(
         textTheme: Typography().white.apply(fontFamily: GoogleFonts.montserrat().fontFamily)

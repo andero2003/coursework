@@ -8,7 +8,6 @@ import 'package:flutter/foundation.dart';
 class FirestoreService extends ChangeNotifier {
   final db = FirebaseFirestore.instance;
 
-
   Future<void> setupProject(Project project) async {
     final projectRef = db.collection('projects').doc(project.project_id.toString());
 
@@ -19,11 +18,11 @@ class FirestoreService extends ChangeNotifier {
 
     projectRef.set(projectMap);
 
-    project.tasks.forEach((task) { 
+    project.tasks.forEach((task) {
       tasksCollection.doc(task.task_id).set(task.toMap());
     });
 
-    project.members.forEach((member) { 
+    project.members.forEach((member) {
       membersCollection.doc(member.user.user_id.toString()).set(member.toMap());
     });
   }
@@ -53,10 +52,11 @@ class FirestoreService extends ChangeNotifier {
   }
 
   Stream<List<Project>> getUserProjects(User user) {
-    List<Project> projectsWithMember = [];
     return db.collection('projects').snapshots().asyncMap(
       (querySnapshot) async {
-        for (var project in querySnapshot.docs) { //unoptimized code get rid in the future!
+        List<Project> projectsWithMember = [];
+        for (var project in querySnapshot.docs) {
+          //unoptimized code get rid in the future!
           final membersCollection = project.reference.collection('members');
           final tasksCollection = project.reference.collection('tasks');
           var memberSnapshot = await membersCollection.doc(user.user_id.toString()).get();
@@ -80,6 +80,7 @@ class FirestoreService extends ChangeNotifier {
           }
         }
 
+        print(projectsWithMember.length);
         return projectsWithMember;
       },
     );

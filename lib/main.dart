@@ -13,9 +13,8 @@ import 'firebase_options.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+    options: DefaultFirebaseOptions.currentPlatform,
   );
-
 
   runApp(const MyApp());
 }
@@ -37,7 +36,7 @@ class _MyAppState extends State<MyApp> {
   bool _initialized = false;
 
   @override
-  void initState() {    
+  void initState() {
     super.initState();
     _initialiseServices();
   }
@@ -62,16 +61,13 @@ class _MyAppState extends State<MyApp> {
         ),
       );
     }
-    
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => authService),
-        ChangeNotifierProvider(create: (_) => firestoreService),
-        ChangeNotifierProvider(create: (_) => projectService),
-        ChangeNotifierProvider(create: (_) => themeService)
-      ],
-      child: ThemedApp()
-    );
+
+    return MultiProvider(providers: [
+      ChangeNotifierProvider(create: (_) => authService),
+      ChangeNotifierProvider(create: (_) => firestoreService),
+      ChangeNotifierProvider(create: (_) => projectService),
+      ChangeNotifierProvider(create: (_) => themeService)
+    ], child: ThemedApp());
   }
 }
 
@@ -84,25 +80,18 @@ class ThemedApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeService = Provider.of<ThemeService>(context);
     return MaterialApp(
-      title: 'App',
-      themeMode: themeService.getThemeMode(),
-      theme: ThemeData(
-        primarySwatch: Colors.lightBlue,
-        fontFamily: "Gotham"
-        //textTheme: GoogleFonts.montserratTextTheme()
-      ),
-      darkTheme: ThemeData.dark().copyWith(
-        textTheme: Typography().white.apply(fontFamily: GoogleFonts.montserrat().fontFamily)
-      ),
-      home: Consumer<AuthService>(
-        builder: (context, authService, _) {
+        title: 'App',
+        themeMode: themeService.getThemeMode(),
+        theme: ThemeData(primarySwatch: Colors.lightBlue, fontFamily: "Gotham"
+            //textTheme: GoogleFonts.montserratTextTheme()
+            ),
+        darkTheme: ThemeData.dark().copyWith(textTheme: Typography().white.apply(fontFamily: GoogleFonts.montserrat().fontFamily)),
+        home: Consumer<AuthService>(builder: (context, authService, _) {
           if (authService.loggedUser != null) {
             return DashboardPage(user: authService.loggedUser!);
           } else {
             return const LoginPage();
-          }              
-        }
-      )
-    );
+          }
+        }));
   }
 }
